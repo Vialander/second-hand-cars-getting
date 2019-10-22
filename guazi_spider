@@ -1,0 +1,155 @@
+# coding=UTF-8
+# 仅供交流学习
+import requests
+from pyquery import PyQuery as pq
+import time, random
+import csv
+
+def to_string(list):
+    str = ""
+    for j in list:
+        str = str + j
+    return str
+
+def replace(string_test, num):
+    new_test1 = []
+    new_test2 = []
+    result_list = []
+    judge = 0  # 当出现数字后置一
+    for s in string_test:
+        if (s.isdigit()):
+            judge = 1
+            continue
+        if (judge == 0):
+            new_test1.append(s)
+        elif (judge == 1):
+            new_test2.append(s)
+    result_list.append(to_string(new_test1))
+    result_list.append(str(num))
+    result_list.append(to_string(new_test2))
+    return result_list
+
+headers = {
+    'Host': 'www.guazi.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Referer': 'https://www.guazi.com/nanchong/',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Connection': 'keep-alive',
+    'Cookie': 'uuid=bb34e94d-cbf5-4066-891c-c22990310851; ganji_uuid=6265738088526387494512; lg=1; Hm_lvt_936a6d5df3f3d309bda39e92da3dd52f=1570933931,1570934128; GZ_TOKEN=115dhO5OzZA%2B%2FWDrAwJgBznyvXcD4bOG%2F3rSDC%2FD9RVp7H4TQ7Ps1MZ7yYE7qNmHWNQbrkCtBEuK8kADrD1DHMJ9wc70lFQZTLdKjt9HfF7kF6mC%2BO11UIiVDLh2aLyirnX%2FaByZFteLSeKw3g; antipas=5q63891592O0y10Y2I77208K; cityDomain=dl; clueSourceCode=10103000312%2300; user_city_id=56; sessionid=1c1dc53e-e601-4ab3-d08a-7117e39a1c76; cainfo=%7B%22ca_a%22%3A%22-%22%2C%22ca_b%22%3A%22-%22%2C%22ca_s%22%3A%22pz_baidu%22%2C%22ca_n%22%3A%22tbmkbturl%22%2C%22ca_medium%22%3A%22-%22%2C%22ca_term%22%3A%22-%22%2C%22ca_content%22%3A%22%22%2C%22ca_campaign%22%3A%22%22%2C%22ca_kw%22%3A%22-%22%2C%22ca_i%22%3A%22-%22%2C%22scode%22%3A%2210103000312%22%2C%22keyword%22%3A%22-%22%2C%22ca_keywordid%22%3A%22-%22%2C%22ca_transid%22%3A%22%22%2C%22platform%22%3A%221%22%2C%22version%22%3A1%2C%22display_finance_flag%22%3A%22-%22%2C%22client_ab%22%3A%22-%22%2C%22guid%22%3A%22bb34e94d-cbf5-4066-891c-c22990310851%22%2C%22ca_city%22%3A%22dl%22%2C%22sessionid%22%3A%221c1dc53e-e601-4ab3-d08a-7117e39a1c76%22%7D; preTime=%7B%22last%22%3A1571448767%2C%22this%22%3A1570933946%2C%22pre%22%3A1570933946%7D'
+}
+
+proxies = {
+    'http': 'http://60.177.231.103:18118',
+    'http': 'http://114.239.150.186:808',
+    'http': 'http://117.69.200.117:9999',
+    'https': 'https://113.120.34.68:9999',
+    'https': 'https://59.57.148.173:9999',
+    'https': 'https://114.239.251.40:9999',
+    'https': 'https://114.239.148.40:9999',
+    'https': 'https://171.35.171.193:9999',
+    'https': 'https://58.253.153.25:9999',
+    'https': 'https://117.95.162.227:9999',
+    'https': 'https://114.239.145.42:808'
+}
+
+tmp_url=""
+
+url_waterfall = [
+    # 'https://www.guazi.com/xm/buy/o1/#bread',
+    # 'https://www.guazi.com/sy/buy/o1/#bread',
+    # 'https://www.guazi.com/cc/buy/o1/#bread',
+    # 'https://www.guazi.com/wh/buy/o1/#bread',
+    'https://www.guazi.com/cd/buy/o1/#bread',
+]
+
+city_waterfall = ['成都']
+
+frequecy_waterful =['1','50']
+
+class GuaziSpider():
+    def __init__(self):
+        self.baseurl = 'https://www.guazi.com'
+        self.s = requests.Session()
+        self.s.headers = headers
+        self.start_url = tmp_url
+        self.infonumber = 0
+
+    def get_page(self, url):
+        return pq(self.s.get(url).text)
+
+    def page_url(self, n, m):
+        page_start = n
+        page_end = m
+        page_url_list = []
+        for i in range(page_start, page_end + 1, 1):
+            # base_url = 'https://www.guazi.com/anji/buy/o{}/#bread'.format(i)
+            base_url = to_string(replace(tmp_url,i))
+            page_url_list.append(base_url)
+        return page_url_list
+
+    def detail_url(self, start_url):
+        content = self.get_page(start_url)
+        for chref in content('ul[@class="carlist clearfix js-top"]  > li > a').items():
+            url = chref.attr.href
+            detail_url = self.baseurl + url
+            yield detail_url
+
+    def carinfo(self, detail_url):
+        content = self.get_page(detail_url)
+        d = {}
+        d['model'] = content('h2.titlebox').text().strip()  # 车型
+        d['registertime'] = content('ul[@class="assort clearfix"] li[@class="one"] span').text()  # 上牌时间
+        d['mileage'] = content('ul[@class="assort clearfix"] li[@class="two"] span').text()  # 表显里程
+        d['displacement'] = content('ul[@class="assort clearfix"] li[@class="three"] span').text() #排量
+        d['gearbox']=content('ul[@class="assort clearfix"] li[@class="last"] span').text() #变速箱
+        d['secprice'] = content('span[@class="pricestype"]').text()  # 报价
+        d['newprice'] = content('span[@class="newcarprice"]').text()  # 新车指导价(含税)
+        d['address'] = content('ul[@class="assort clearfix"]').find('li'). \
+            eq(2).find('span').text()  # 上牌地
+        d['displacement'] = content('ul[@class="assort clearfix"]'). \
+            find('li').eq(3).find('span').text()  # 排量
+        return d
+
+    def run(self, n, m, city):
+        page_start = n
+        page_end = m
+        with open('{} {}-{}.csv'.format(city, page_start, page_end), 'w', newline="",encoding='utf-8') as f:
+            Csv_header = ["model","registertime","mileage","displacement","gearbox","secprice","newprice","address","displacement"]
+            Cars = []
+            for pageurl in self.page_url(page_start, page_end):
+                print(pageurl)
+                print("请稍等")
+                time.sleep(random.randint(20,25))
+                for detail_url in self.detail_url(pageurl):
+                    print(detail_url)
+                    d = self.carinfo(detail_url)
+                    print(d)
+                    oneCar = []
+                    oneCar.append(str(d['model']))
+                    oneCar.append(str(d['registertime']))
+                    oneCar.append(str(d['mileage']))
+                    oneCar.append(str(d['displacement']))
+                    oneCar.append(str(d['gearbox']))
+                    oneCar.append(str(d['secprice']))
+                    oneCar.append(str(d['newprice']))
+                    oneCar.append(str(d['address']))
+                    oneCar.append(str(d['displacement']))
+                    time.sleep(5)
+                    self.infonumber += 1
+                    print('正在爬第%d辆车' % self.infonumber)
+                    Cars.append(oneCar)
+                print('-' * 10)
+            f_csv = csv.writer(f)
+            f_csv.writerow(Csv_header)
+            f_csv.writerows(Cars)
+        f.close()
+
+if __name__ == '__main__':
+    for i in range(0,1):
+        tmp_url = url_waterfall[i]
+        gzcrawler = GuaziSpider()
+        # 爬取第1页到第15页的信息
+        gzcrawler.run(int(frequecy_waterful[2*i]), int(frequecy_waterful[2*i+1]),city_waterfall[i])
